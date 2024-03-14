@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Meta tags -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Title -->
+  <title>Map with Wikipedia Integration and Images</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Inline styles -->
+  <style>
+    
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <h1 id="pageTitle">Map with Wikipedia Integration and Images</h1>
+  </div>
+  <!-- Header -->
+  <div class="header">
+    <!-- Search container -->
+    <div class="search-container">
+      <input type="text" id="location" placeholder="Enter location name">
+      <button id="search-button" onclick="searchLocation()">Search</button>
+    </div>
+    <!-- Buttons container -->
+    <div id="buttons-container">
+      <button class="button" onclick="getLiveLocation()">Live Location</button>
+      <button class="button" onclick="copyCoordinates()">Copy Coordinates</button>
+    </div>
+  </div>
+  <!-- Map container -->
+  <div id="map"></div>
+  <!-- Container for Wikipedia articles -->
+  <div class="article-container" id="articles-container"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // JavaScript code for map functionality
+    // Initialize Leaflet map
+    var map = L.map('map').setView([51.505, -0.09], 2);
+    var marker;
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Function to create marker on map
+    function createMarker(lat, lon) {
+      if (marker) {
+        map.removeLayer(marker);
+      }
+      marker = L.marker([lat, lon]).addTo(map);
+    }
+
+    // Function to search location and display articles
+    function searchLocation() {
+      var locationName = document.getElementById('location').value;
+      fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + locationName)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            var lat = parseFloat(data[0].lat);
+            var lon = parseFloat(data[0].lon);
+            map.setView([lat, lon], 13);
+            createMarker(lat, lon);
+            fetchArticles(lat, lon);
+          } else {
+            alert('Location not found');
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Event listener for map click to create marker and display articles
+    map.on('click', function(e) {
+      var lat = e.latlng.lat;
+      var lon = e.latlng.lng;
+      createMarker(lat, lon);
+      fetchArticles(lat, lon);
+    });
+
+    // Function to get live location and display articles
+    function getLiveLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          var lat = position.coords.latitude;
+          var lon = position.coords.longitude;
+          map.setView([lat, lon], 13);
+          createMarker(lat, lon);
+          fetchArticles(lat, lon);
+        }, error => {
+          console.error('Error:', error);
+          alert('Error getting your location');
+        });
+      } else {
+        alert('Geolocation is not supported by this browser.');
+      }
+    }
+
+    // Function to fetch Wikipedia articles based on location
+    function fetchArticles(lat, lon) {
+      const url = `https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&list=geosearch&gscoord=${lat}|${lon}&gsradius=10000&gslimit=10`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => displayArticles(data.query.geosearch))
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Function to display Wikipedia articles
+    function displayArticles(articles) {
+      const articlesContainer = document.getElementById('articles-container');
+      articlesContainer.innerHTML = '';
+      if (articles.length > 0) {
+        articles.forEach(article => {
+          fetchArticleImage(article.pageid, article.title);
+        });
+      } else {
+        articlesContainer.innerHTML = 'No Wikipedia articles found near this location.';
+      }
+    }
+
+    // Function to fetch Wikipedia article image
+    function fetchArticleImage(pageId, title) {
+      const imageUrl = `https://en.wikipedia.org/w/api.php?origin=*&action=query&format=json&prop=pageimages&pageids=${pageId}&pithumbsize=700`;
+      fetch(imageUrl)
+        .then(response => response.json())
+        .then(data => {
+          const articleContainer = document.getElementById('articles-container');
+          const articleCard = document.createElement('div');
+          articleCard.className = 'article-card';
+
+          const linkElement = document.createElement('a');
+          linkElement.href = `https://en.wikipedia.org/wiki/${title}`;
+          linkElement.className = 'article-link';
+          linkElement.target = '_blank';
+
+          const imgElement = document.createElement('img');
+          imgElement.alt = title;
+          imgElement.className = 'article-image';
+          if (data.query.pages[pageId].thumbnail) {
+            imgElement.src = data.query.pages[pageId].thumbnail.source;
+          } else {
+            imgElement.src = 'https://www.freepnglogos.com/uploads/wikipedia-logo-png/free-hd-logog-of-wikipedia-worldmark-v2-2.png'; 
+          }
+          linkElement.appendChild(imgElement);
+
+          const titleElement = document.createElement('div');
+          titleElement.className = 'article-title';
+          titleElement.textContent = title;
+          linkElement.appendChild(titleElement);
+
+          articleCard.appendChild(linkElement);
+          articleContainer.appendChild(articleCard);
+        })
+        .catch(error => console.error('Error fetching article image:', error));
+    }
+
+    // Function to copy coordinates to clipboard
+    function copyCoordinates() {
+      if (marker) {
+        var lat = marker.getLatLng().lat.toFixed(6);
+        var lon = marker.getLatLng().lng.toFixed(6);
+        var coordinates = lat + ', ' + lon;
+        navigator.clipboard.writeText(coordinates).then(function() {
+          alert('Coordinates copied to clipboard: ' + coordinates);
+        }, function(err) {
+          console.error('Failed to copy coordinates: ', err);
+          alert('Failed to copy coordinates.');
+        });
+      } else {
+        alert('No marker selected to copy coordinates.');
+      }
+    }
+  </script>
+</body>
+</html>
