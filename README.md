@@ -44,4 +44,4 @@ All the related articles based on the coordinates can be accessed through a clic
 
 ![image](https://github.com/harika-mini/Wikipedia-Accessible-Map/assets/125467348/0b8067c9-26d4-4aa0-8351-91004ccedeb7)
 
-The coordinates are bounded to a range and cannot work for huge ranges
+The coordinates are bounded to a specific range and cannot work for huge ranges
