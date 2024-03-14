@@ -33,3 +33,15 @@ Start exploring Wikipedia articles by clicking on the map, searching for specifi
 Contributions are welcome! If you have any suggestions, enhancements, or bug fixes, feel free to submit a pull request or open an issue.
 
 ## Screenshots
+
+![image](https://github.com/harika-mini/Wikipedia-Accessible-Map/assets/125467348/96f3feb8-d4c6-4aa6-8889-e3555d82576e)
+
+The articles can also be accessed by using the search option that can search a place
+
+![image](https://github.com/harika-mini/Wikipedia-Accessible-Map/assets/125467348/75a400e1-32d8-4c84-9eca-1c621005dab8)
+
+All the related articles based on the coordinates can be accessed through a click on the map!
+
+![image](https://github.com/harika-mini/Wikipedia-Accessible-Map/assets/125467348/0b8067c9-26d4-4aa0-8351-91004ccedeb7)
+
+The coordinates are bounded to a range and cannot work for huge ranges
