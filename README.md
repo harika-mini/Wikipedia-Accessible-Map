@@ -24,7 +24,9 @@ Used for fetching articles based on user interactions and searches.
 To get started with Wikipedia Access Map, follow these steps:
 
 Clone this repository to your local machine.
+
 Open the index.html file in your web browser.
+
 Start exploring Wikipedia articles by clicking on the map, searching for specific topics, or utilizing other available functionalities.
 
 ## Contributing
